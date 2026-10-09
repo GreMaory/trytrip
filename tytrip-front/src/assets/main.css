@@ -1,0 +1,30 @@
+:root {
+  --tt-sidebar-width: 232px;
+  --tt-bg: #f5f7fa;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--el-text-color-primary);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--tt-bg); }
+a { color: var(--el-color-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.page { padding: 24px; max-width: 1400px; margin: 0 auto; }
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.page-header h1 { font-size: 22px; margin: 0; font-weight: 600; }
+.page-header .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.toolbar .el-input { max-width: 320px; }
+.muted { color: var(--el-text-color-secondary); }
+.grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.stat-value { font-size: 28px; font-weight: 600; margin-top: 4px; }
+.pagination { display: flex; justify-content: flex-end; margin-top: 16px; }
+.form-narrow { max-width: 720px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+@media (max-width: 768px) {
+  .page { padding: 16px; }
+}

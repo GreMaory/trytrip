@@ -1,0 +1,26 @@
+# docker-compose.prod.yml
+services:
+  traefik:
+    command:
+      - "--providers.docker=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.email=toi@tytrip.com"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+    volumes:
+      - letsencrypt:/letsencrypt
+
+  app:
+    labels:
+      - "traefik.http.routers.app.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.tytrip.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.app.tls.certresolver=le"
+
+  frontend:
+    labels:
+      - "traefik.http.routers.frontend.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.tytrip.com`)"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+
+volumes:
+  letsencrypt:

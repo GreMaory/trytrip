@@ -1,0 +1,7 @@
+Bonjour,
+
+<%= @invitation.invited_by.name %> vous invite à rejoindre <%= @invitation.tenant.name %> sur TyTrip en tant que « <%= @invitation.role.name %> ».
+
+Accepter l'invitation : <%= @url %>
+
+Cette invitation expire le <%= @invitation.expires_at.to_date %>.

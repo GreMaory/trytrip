@@ -1,0 +1,5 @@
+Bonjour <%= @guest.first_name %>,
+
+Votre réservation <%= @reservation.reference %> à <%= @property.name %> du <%= @reservation.check_in.strftime("%d/%m/%Y") %> au <%= @reservation.check_out.strftime("%d/%m/%Y") %> a été annulée.
+
+Pour toute question, répondez à cet email ou contactez <%= @organization.name %>.

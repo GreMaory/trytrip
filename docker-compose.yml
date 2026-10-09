@@ -1,0 +1,111 @@
+# TyTrip development stack.
+#
+#   http://<tenant>.lvh.me/        -> frontend (Vite dev server)
+#   http://<tenant>.lvh.me/api/... -> Rails API
+#   http://app.lvh.me/             -> portal (login, organization selection)
+#   http://admin.lvh.me/           -> platform administration
+#   http://localhost:8025          -> Mailpit (captured emails)
+#
+# lvh.me and all its subdomains resolve to 127.0.0.1.
+services:
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  app:
+    build:
+      context: ./tytrip-back
+      dockerfile: docker/Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=HostRegexp(`^([a-z0-9-]+\\.)?lvh\\.me$`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.app.priority=100"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+    volumes:
+      - ./tytrip-back:/rails
+      - bundle_cache:/usr/local/bundle
+    environment: &rails_env
+      DATABASE_HOST: postgres
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      SMTP_ADDRESS: mailpit
+      SMTP_PORT: "1025"
+      APP_DOMAIN: lvh.me
+    command: >
+      bash -c "
+        rm -f tmp/pids/server.pid &&
+        (bundle check || bundle install) &&
+        bin/rails db:prepare &&
+        bin/rails server -b 0.0.0.0
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Solid Queue worker: processes background jobs (emails, syncs...).
+  jobs:
+    build:
+      context: ./tytrip-back
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ./tytrip-back:/rails
+      - bundle_cache:/usr/local/bundle
+    environment: *rails_env
+    command: >
+      bash -c "
+        (bundle check || bundle install) &&
+        bin/jobs
+      "
+    depends_on:
+      app:
+        condition: service_started
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=HostRegexp(`^([a-z0-9-]+\\.)?lvh\\.me$`)"
+      - "traefik.http.routers.frontend.priority=10"
+      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
+    environment:
+      VITE_APP_DOMAIN: lvh.me
+      VITE_HMR_CLIENT_PORT: "80" # the browser reaches Vite through Traefik
+    volumes:
+      - ./tytrip-front:/app
+      - frontend_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      # Exposed on 5433 so host-side tools (tests, psql) can reach it
+      # without clashing with a local PostgreSQL on 5432.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./tytrip-back/docker/postgres/init-shards.sh:/docker-entrypoint-initdb.d/init-shards.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8025:8025" # web UI
+      - "127.0.0.1:1025:1025" # SMTP, for Rails running on the host
+
+volumes:
+  postgres_data:
+  bundle_cache:
+  frontend_node_modules:

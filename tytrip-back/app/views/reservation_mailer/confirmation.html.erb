@@ -1,0 +1,12 @@
+<p>Bonjour <%= @guest.first_name %>,</p>
+<p>Votre réservation est confirmée.</p>
+<table cellpadding="4">
+  <tr><td>Référence</td><td><strong><%= @reservation.reference %></strong></td></tr>
+  <tr><td>Hébergement</td><td><%= @property.name %><% if @reservation.unit.name != @property.name %> – <%= @reservation.unit.name %><% end %></td></tr>
+  <% if @property.city.present? %><tr><td>Adresse</td><td><%= [@property.address_line1, @property.postal_code, @property.city].compact_blank.join(", ") %></td></tr><% end %>
+  <tr><td>Arrivée</td><td><%= @reservation.check_in.strftime("%d/%m/%Y") %> à partir de <%= @property.check_in_time %></td></tr>
+  <tr><td>Départ</td><td><%= @reservation.check_out.strftime("%d/%m/%Y") %> avant <%= @property.check_out_time %></td></tr>
+  <tr><td>Voyageurs</td><td><%= @reservation.adults %> adulte(s)<% if @reservation.children.positive? %>, <%= @reservation.children %> enfant(s)<% end %></td></tr>
+  <tr><td>Montant total</td><td><%= number_to_currency(@reservation.total_amount, unit: @reservation.currency, format: "%n %u", separator: ",", delimiter: " ") %></td></tr>
+</table>
+<p>Au plaisir de vous accueillir,<br><%= @organization.name %></p>

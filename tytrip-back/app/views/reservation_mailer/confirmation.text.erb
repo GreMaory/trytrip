@@ -1,0 +1,13 @@
+Bonjour <%= @guest.first_name %>,
+
+Votre réservation est confirmée.
+
+Référence : <%= @reservation.reference %>
+Hébergement : <%= @property.name %><% if @reservation.unit.name != @property.name %> – <%= @reservation.unit.name %><% end %>
+Arrivée : <%= @reservation.check_in.strftime("%d/%m/%Y") %> à partir de <%= @property.check_in_time %>
+Départ : <%= @reservation.check_out.strftime("%d/%m/%Y") %> avant <%= @property.check_out_time %>
+Voyageurs : <%= @reservation.adults %> adulte(s)<% if @reservation.children.positive? %>, <%= @reservation.children %> enfant(s)<% end %>
+Montant total : <%= number_to_currency(@reservation.total_amount, unit: @reservation.currency, format: "%n %u", separator: ",", delimiter: " ") %>
+
+Au plaisir de vous accueillir,
+<%= @organization.name %>

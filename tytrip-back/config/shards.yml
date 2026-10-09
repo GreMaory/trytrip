@@ -1,0 +1,8 @@
+# Tenant shards: shard key => database config name in config/database.yml.
+#
+# A tenant row in the catalog stores its shard key. Adding a shard means adding
+# a database config here and in database.yml; existing tenants are not moved.
+# Never remove a shard that still hosts tenants.
+shared:
+  shard_one: primary
+  shard_two: primary_shard_two
